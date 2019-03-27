@@ -1,10 +1,10 @@
 ******************************************************************************
              TMS320C2000 Linker PC v6.4.6                      
 ******************************************************************************
->> Linked Wed Mar 20 09:54:30 2019
+>> Linked Wed Mar 27 10:34:58 2019
 
 OUTPUT FILE NAME:   <DSPlab2.out>
-ENTRY POINT SYMBOL: "_c_int00"  address: 000095ec
+ENTRY POINT SYMBOL: "_c_int00"  address: 0000940a
 
 
 MEMORY CONFIGURATION
@@ -15,7 +15,7 @@ PAGE 0:
   BEGIN                 00000000   00000002  00000000  00000002  RWIX
   RAMM0                 00000050   000003b0  00000000  000003b0  RWIX
   RAML0                 00008000   00001000  0000001a  00000fe6  RWIX
-  RAML1                 00009000   00001000  000006b2  0000094e  RWIX
+  RAML1                 00009000   00001000  0000048b  00000b75  RWIX
   RAML2                 0000a000   00001000  00000000  00001000  RWIX
   RAML3                 0000b000   00001000  00000000  00001000  RWIX
   ZONE7A                00200000   0000fc00  00000000  0000fc00  RWIX
@@ -80,7 +80,7 @@ PAGE 1:
   SCIC                  00007770   00000010  00000000  00000010  RWIX
   I2CA                  00007900   00000040  00000000  00000040  RWIX
   RAML4                 0000c000   00001000  00000008  00000ff8  RWIX
-  RAML5                 0000d000   00001000  00000010  00000ff0  RWIX
+  RAML5                 0000d000   00001000  00000000  00001000  RWIX
   RAML6                 0000e000   00001000  00000000  00001000  RWIX
   RAML7                 0000f000   00001000  00000000  00001000  RWIX
   ZONE7B                0020fc00   00000400  00000000  00000400  RWIX
@@ -102,41 +102,24 @@ section   page    origin      length       input sections
 ramfuncs   0    00008016    00000004     
                   00008016    00000004     DSP2833x_usDelay.obj (ramfuncs)
 
-.text      0    00009000    000006b2     
+.text      0    00009000    0000048b     
                   00009000    00000316     DSP2833x_DefaultIsr.obj (.text:retain)
                   00009316    000000ad     DSP2833x_SysCtrl.obj (.text)
-                  000093c3    0000009c     rts2800_fpu32.lib : fd_add.obj (.text)
-                  0000945f    0000008b                       : fd_div.obj (.text)
-                  000094ea    00000083                       : fd_mpy.obj (.text)
-                  0000956d    0000007f     main.obj (.text)
-                  000095ec    00000046     rts2800_fpu32.lib : boot.obj (.text)
-                  00009632    0000001c                       : fs_tofd.obj (.text)
-                  0000964e    0000001b                       : fd_toul.obj (.text)
-                  00009669    00000019                       : args_main.obj (.text)
-                  00009682    00000019                       : exit.obj (.text)
-                  0000969b    0000000e                       : fd_sub.obj (.text)
-                  000096a9    00000009                       : _lock.obj (.text)
+                  000093c3    00000047     main.obj (.text)
+                  0000940a    00000046     rts2800_fpu32.lib : boot.obj (.text)
+                  00009450    00000019                       : args_main.obj (.text)
+                  00009469    00000019                       : exit.obj (.text)
+                  00009482    00000009                       : _lock.obj (.text)
 
 .pinit     0    00008000    00000000     UNINITIALIZED
 
 .stack     1    00000400    00000300     UNINITIALIZED
                   00000400    00000300     --HOLE--
 
-FlashRegsFile 
-*          1    00000a80    00000008     UNINITIALIZED
-                  00000a80    00000008     DSP2833x_GlobalVariableDefs.obj (FlashRegsFile)
-
-CsmRegsFile 
-*          1    00000ae0    00000010     UNINITIALIZED
-                  00000ae0    00000010     DSP2833x_GlobalVariableDefs.obj (CsmRegsFile)
-
 .ebss      1    0000c000    00000008     UNINITIALIZED
                   0000c000    00000004     rts2800_fpu32.lib : exit.obj (.ebss)
                   0000c004    00000002                       : _lock.obj (.ebss:__lock)
                   0000c006    00000002                       : _lock.obj (.ebss:__unlock)
-
-.econst    1    0000d000    00000010     
-                  0000d000    00000010     main.obj (.econst)
 
 .reset     0    003fffc0    00000002     DSECT
                   003fffc0    00000002     rts2800_fpu32.lib : boot.obj (.reset)
@@ -145,6 +128,14 @@ csm_rsvd   0    0033ff80    00000000     DSECT
 
 csmpasswds 
 *          0    0033fff8    00000000     DSECT
+
+FlashRegsFile 
+*          1    00000a80    00000008     UNINITIALIZED
+                  00000a80    00000008     DSP2833x_GlobalVariableDefs.obj (FlashRegsFile)
+
+CsmRegsFile 
+*          1    00000ae0    00000010     UNINITIALIZED
+                  00000ae0    00000010     DSP2833x_GlobalVariableDefs.obj (CsmRegsFile)
 
 GpioCtrlRegsFile 
 *          1    00006f80    0000002e     UNINITIALIZED
@@ -197,13 +188,7 @@ GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name
 page  address   name                 
 ----  -------   ----                 
 0     00009000  .text                
-0     00009682  C$$EXIT              
-0     000093c3  FD$$ADD              
-0     0000945f  FD$$DIV              
-0     000094ea  FD$$MPY              
-0     0000969b  FD$$SUB              
-0     0000964e  FD$$TOUL             
-0     00009632  FS$$TOFD             
+0     00009469  C$$EXIT              
 0     000090e6  _ADCINT_ISR          
 1     0033fff8  _CsmPwl              
 1     00000ae0  _CsmRegs             
@@ -246,7 +231,7 @@ page  address   name
 1     00006f80  _GpioCtrlRegs        
 1     00006fc0  _GpioDataRegs        
 1     00006fe0  _GpioIntRegs         
-0     000095e0  _Gpio_select         
+0     000093f6  _Gpio_select         
 0     00009244  _I2CINT1A_ISR        
 0     0000924e  _I2CINT2A_ISR        
 0     0000903c  _ILLEGAL_ISR         
@@ -304,24 +289,24 @@ abs   00000300  __STACK_SIZE
 abs   ffffffff  ___binit__           
 abs   ffffffff  ___c_args__          
 0     00008000  ___cinit__           
-0     000096b2  ___etext__           
+0     0000948b  ___etext__           
 abs   ffffffff  ___pinit__           
 0     00009000  ___text__            
-0     00009669  __args_main          
+0     00009450  __args_main          
 1     0000c004  __lock               
-0     000096b1  __nop                
-0     000096ad  __register_lock      
-0     000096a9  __register_unlock    
+0     0000948a  __nop                
+0     00009486  __register_lock      
+0     00009482  __register_unlock    
 1     00000400  __stack              
 1     0000c006  __unlock             
-0     00009682  _abort               
-0     000095ec  _c_int00             
-0     00009684  _exit                
-0     0000956d  _main                
+0     00009469  _abort               
+0     0000940a  _c_int00             
+0     0000946b  _exit                
+0     000093c3  _main                
 0     0000930c  _rsvd_ISR            
 abs   ffffffff  binit                
 0     00008000  cinit                
-0     000096b2  etext                
+0     0000948b  etext                
 abs   ffffffff  pinit                
 
 
@@ -419,24 +404,18 @@ page  address   name
 0     00009331  _InitPll             
 0     00009382  _InitPeripheralClocks
 0     00009392  _CsmUnlock           
-0     000093c3  FD$$ADD              
-0     0000945f  FD$$DIV              
-0     000094ea  FD$$MPY              
-0     0000956d  _main                
-0     000095e0  _Gpio_select         
-0     000095ec  _c_int00             
-0     00009632  FS$$TOFD             
-0     0000964e  FD$$TOUL             
-0     00009669  __args_main          
-0     00009682  C$$EXIT              
-0     00009682  _abort               
-0     00009684  _exit                
-0     0000969b  FD$$SUB              
-0     000096a9  __register_unlock    
-0     000096ad  __register_lock      
-0     000096b1  __nop                
-0     000096b2  ___etext__           
-0     000096b2  etext                
+0     000093c3  _main                
+0     000093f6  _Gpio_select         
+0     0000940a  _c_int00             
+0     00009450  __args_main          
+0     00009469  C$$EXIT              
+0     00009469  _abort               
+0     0000946b  _exit                
+0     00009482  __register_unlock    
+0     00009486  __register_lock      
+0     0000948a  __nop                
+0     0000948b  ___etext__           
+0     0000948b  etext                
 1     00000400  __stack              
 1     00000700  __STACK_END          
 1     00000a80  _FlashRegs           
@@ -457,4 +436,4 @@ abs   ffffffff  ___pinit__
 abs   ffffffff  binit                
 abs   ffffffff  pinit                
 
-[127 symbols]
+[121 symbols]
