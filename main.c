@@ -21,123 +21,123 @@
 #define FNDC_L	GpioDataRegs.GPBCLEAR.bit.GPIO52 = 1
 #define FNDD_L	GpioDataRegs.GPBCLEAR.bit.GPIO53 = 1
 
-#define THIRD_CHAPTER
-
-#ifdef FIRST_CHAPTER
-#define DELAY_MAX 1000000
-#define DELAY_MIN 0
-#define DELAY_ALPHA 100000
-#endif
-
-#ifdef SECOND_CHPATER
-#define DELAY 50000
-#endif
+#define LCDD0_H	GpioDataRegs.GPBSET.bit.GPIO57 = 1
+#define LCDD1_H	GpioDataRegs.GPBSET.bit.GPIO56 = 1
+#define LCDD2_H	GpioDataRegs.GPBSET.bit.GPIO61 = 1
+#define LCDD3_H	GpioDataRegs.GPBSET.bit.GPIO60 = 1
+#define LCDE_H	GpioDataRegs.GPBSET.bit.GPIO55 = 1
+#define LCDRS_H	GpioDataRegs.GPBSET.bit.GPIO54 = 1
+#define LCDD0_L	GpioDataRegs.GPBCLEAR.bit.GPIO57 = 1
+#define LCDD1_L	GpioDataRegs.GPBCLEAR.bit.GPIO56 = 1
+#define LCDD2_L	GpioDataRegs.GPBCLEAR.bit.GPIO61 = 1
+#define LCDD3_L	GpioDataRegs.GPBCLEAR.bit.GPIO60 = 1
+#define LCDE_L	GpioDataRegs.GPBCLEAR.bit.GPIO55 = 1
+#define LCDRS_L	GpioDataRegs.GPBCLEAR.bit.GPIO54 = 1
 
 void Gpio_select(void);
-void Gpio_Fnd_out(unsigned char da);
+
+void lcdprint_data(char *str);
+void lcd_write(char data,unsigned char Rs);
+void lcd_Gpio_data_out(unsigned char da);
+void lcd_init(void);
 
 void main(){
 
 	InitSysCtrl();        //basic core initialization
-
 	DINT;                //Disable all interrupts
-
 	Gpio_select();
+	lcd_init();
 
-	/** First Chapter
-	 * LED blinks faster and slower
-	LED1_L;
-	LED2_L;		//LED OFF(초기화)
-
-	double delay, alpha;
-	for(delay = DELAY_MAX, alpha = -DELAY_ALPHA;; delay += alpha){
-		LED1_T; LED2_T;
-		DELAY_US(delay);
-
-		if(delay > DELAY_MAX || delay < DELAY_MIN)
-			alpha *= -1;
-	}
-	*/
-
-	/** Second Chapter
-	for(;;)
+	lcdprint_data("010-4099-2776");
+	while(1)
 	{
-		LED1 = DIP1;
-		LED2 = DIP2;
+		lcd_write(0x0C, 0);
 
-		DELAY_US(DELAY);
-		if(DIP1 && !DIP2) LED1_T;
-		else if(!DIP1 && DIP2) LED2_T;
-		DELAY_US(DELAY);
+		if(DIP1 && !DIP2)
+		{
+			lcd_write(0x18, 0);
+		}
+		else if(!DIP1 && DIP2)
+		{
+			lcd_write(0x1C, 0);
+		}
+		else if(!DIP1 && !DIP2)
+		{
+			lcd_write(0x08, 0);
+		}
+		DELAY_US(200000);
 	}
-	*/
 
-	/** Third Chapter */
-	unsigned char alpha = 1;
-	char i  = 0;
-
-	/** previous code - third chapter
-	LED1_L;
-	LED2_L;
-	*/
-	GpioDataRegs.GPACLEAR.all &= 0x79000000 & 0x78000000; // GPIO 24,25 clear
-
-	for(i = 0; i >= 0; i += alpha)
-	{
-		if(i >= 9) alpha *= -1; // FND value decreases after number becomes 9
-
-		Gpio_Fnd_out(i); // FND value is changed to 'i'
-		DELAY_US(1000000); // 1 seconds delay
-	}
-	/** previous code - third chapter
-	LED1_H;
-	LED2_H;
-	DELAY_US(1000000);
-	LED1_L;
- 	LED2_L;
- 	*/
-	GpioDataRegs.GPATOGGLE.all |= 0x1000000 | 0x2000000; // GPIO 24,25 clear
-	DELAY_US(1000000);
-	GpioDataRegs.GPATOGGLE.all |= 0x1000000 | 0x2000000; // GPIO 24,25 clear
-	Gpio_Fnd_out(10);// FND off
 }
 
 void Gpio_select(void)
 {
    EALLOW; // 보호 해제(레지스터를 사용할 때 보호를 풀었다가 다시 아요해주어야함)
 
-   	/* Second Chapter
-    GpioCtrlRegs.GPBPUD.bit.GPIO48 = 0;
-   	GpioCtrlRegs.GPBPUD.bit.GPIO49 = 0;
+   	GpioCtrlRegs.GPBMUX2.all = 0;
 
-	GpioCtrlRegs.GPAMUX2.all = 0; //GPIO16...gpio31
+	// LCD Register
+	GpioCtrlRegs.GPBDIR.bit.GPIO54 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO55 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO57 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO56 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO61 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO60 = 1;
 
-	GpioCtrlRegs.GPADIR.bit.GPIO25 = 1;	//OUTPUT 설정
-	GpioCtrlRegs.GPADIR.bit.GPIO24 = 1;	//OUTPUT 설정
+	// DIP Register
+	GpioCtrlRegs.GPBPUD.bit.GPIO48 = 0;
+	GpioCtrlRegs.GPBPUD.bit.GPIO49 = 0;
 	GpioCtrlRegs.GPBDIR.bit.GPIO48 = 0;
 	GpioCtrlRegs.GPBDIR.bit.GPIO49 = 0;
-	*/
-	GpioCtrlRegs.GPBMUX2.all = 0;
 
-	GpioCtrlRegs.GPADIR.bit.GPIO25 = 1;	//OUTPUT 설정
-	GpioCtrlRegs.GPADIR.bit.GPIO24 = 1;	//OUTPUT 설정
-
-	GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;
-	GpioCtrlRegs.GPBDIR.bit.GPIO51 = 1;
-	GpioCtrlRegs.GPBDIR.bit.GPIO52 = 1;
-	GpioCtrlRegs.GPBDIR.bit.GPIO53 = 1;
-	
    EDIS; // 보호 사용
 }
 
-void Gpio_Fnd_out(unsigned char da)
+void lcdprint_data(char *str)
 {
-	if(da & 0x01)	FNDA_H;
-	else			FNDA_L;
-	if(da & 0x02)	FNDB_H;
-	else			FNDB_L;
-	if(da & 0x04)	FNDC_H;
-	else			FNDC_L;
-	if(da & 0x08)	FNDD_H;
-	else			FNDD_L;
+	unsigned char i=0;
+	while(str[i]!='\0')
+	{
+		lcd_write(str[i++],1);
+	}
+}
+
+void lcd_write(char data,unsigned char Rs)
+{
+	if(Rs)	LCDRS_H;
+	else	LCDRS_L;
+	lcd_Gpio_data_out((data>>4) & 0x0f);
+	DELAY_US(1);
+	LCDE_H;
+	DELAY_US(1);
+	LCDE_L;
+	DELAY_US(1);
+
+	lcd_Gpio_data_out(data & 0x0f);
+	DELAY_US(1);
+	LCDE_H;
+	DELAY_US(1);
+	LCDE_L;
+	DELAY_US(41);
+}
+
+void lcd_Gpio_data_out(unsigned char da)
+{
+	if(da & 0x1)	LCDD0_H;
+	else	LCDD0_L;
+	if(da & 0x2)	LCDD1_H;
+	else	LCDD1_L;
+	if(da & 0x4)	LCDD2_H;
+	else	LCDD2_L;
+	if(da & 0x8)	LCDD3_H;
+	else	LCDD3_L;
+}
+
+void lcd_init(void)
+{
+	lcd_write(0x20,0);		//4bit data mode, 1 line, 5x7 dot
+	lcd_write(0x0C,0);		//display on
+	lcd_write(0x01,0);		//Display Clear
+    DELAY_US(1960);
+	lcd_write(0x06,0);		//Entry mode
 }
