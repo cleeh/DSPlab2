@@ -34,6 +34,7 @@
 #define LCDE_L	GpioDataRegs.GPBCLEAR.bit.GPIO55 = 1
 #define LCDRS_L	GpioDataRegs.GPBCLEAR.bit.GPIO54 = 1
 
+void Gpio_Fnd_out(unsigned char da);
 void Gpio_select(void);
 
 void lcdprint_data(char *str);
@@ -48,33 +49,86 @@ void main(){
 	Gpio_select();
 	lcd_init();
 
-	lcdprint_data("010-4099-2776");
+	// Initialize
+	int trigger = 1; // this makes it possible that codes activate only once in loop
+
+	lcdprint_data("2014039102");
+	lcd_write(0xC0, 0);
+	LED1_L;	LED2_L;
+
 	while(1)
 	{
 		lcd_write(0x0C, 0);
 
-		if(DIP1 && !DIP2)
+		if(DIP1 && DIP2)
 		{
-			lcd_write(0x18, 0);
+			trigger = 1;
+
+			lcd_write(0x1C, 0); // Right Shift
+			LED1_H; LED2_H; // LED1,2 ON
+			Gpio_Fnd_out(3); // FND 3
+		}
+		else if(DIP1 && !DIP2)
+		{
+			trigger = 1;
+
+			lcd_write('2', 1); // Print 2 on LCD
+			LED1_H;	LED2_L; // LED1 On, LED2 Off
+			Gpio_Fnd_out(2); // FND 2
 		}
 		else if(!DIP1 && DIP2)
 		{
-			lcd_write(0x1C, 0);
-		}
-		else if(!DIP1 && !DIP2)
-		{
-			lcd_write(0x08, 0);
-		}
-		DELAY_US(200000);
-	}
+			trigger = 1;
 
+			lcd_write('1', 1); // Print 1 on LCD
+			LED1_L; LED2_H; // LED1 Off, LED2 On
+			Gpio_Fnd_out(1); // FND 1
+
+		}
+		else if(!DIP1 && !DIP2 && trigger)
+		{
+			trigger = 0;
+
+			lcd_write(0x01, 0); DELAY_US(10000); // Clear & Wait inner process
+
+			// Re-Initialize
+			lcdprint_data("2014039102");
+			lcd_write(0xC0, 0); // Cursor Move
+			LED1_L;	LED2_L; // LED1,2 Off
+			Gpio_Fnd_out(0); // FND 0
+		}
+		DELAY_US(1000000);
+	}
+}
+
+void Gpio_Fnd_out(unsigned char da)
+{
+	if(da & 0x01)	FNDA_H;
+	else			FNDA_L;
+	if(da & 0x02)	FNDB_H;
+	else			FNDB_L;
+	if(da & 0x04)	FNDC_H;
+	else			FNDC_L;
+	if(da & 0x08)	FNDD_H;
+	else			FNDD_L;
 }
 
 void Gpio_select(void)
 {
    EALLOW; // 보호 해제(레지스터를 사용할 때 보호를 풀었다가 다시 아요해주어야함)
 
+    GpioCtrlRegs.GPAMUX2.all = 0; //GPIO16...gpio31
    	GpioCtrlRegs.GPBMUX2.all = 0;
+
+   	// LED Register
+   	GpioCtrlRegs.GPADIR.bit.GPIO25 = 1;	//OUTPUT 설정
+   	GpioCtrlRegs.GPADIR.bit.GPIO24 = 1;	//OUTPUT 설정
+
+   	// FND Register
+   	GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;
+   	GpioCtrlRegs.GPBDIR.bit.GPIO51 = 1;
+   	GpioCtrlRegs.GPBDIR.bit.GPIO52 = 1;
+   	GpioCtrlRegs.GPBDIR.bit.GPIO53 = 1;
 
 	// LCD Register
 	GpioCtrlRegs.GPBDIR.bit.GPIO54 = 1;
@@ -135,7 +189,8 @@ void lcd_Gpio_data_out(unsigned char da)
 
 void lcd_init(void)
 {
-	lcd_write(0x20,0);		//4bit data mode, 1 line, 5x7 dot
+	lcd_write(0x28,0);		//4bit data mode, 1 line, 5x7 dot
+	lcd_write(0x28,0);
 	lcd_write(0x0C,0);		//display on
 	lcd_write(0x01,0);		//Display Clear
     DELAY_US(1960);
