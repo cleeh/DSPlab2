@@ -34,6 +34,10 @@
 #define LCDE_L	GpioDataRegs.GPBCLEAR.bit.GPIO55 = 1
 #define LCDRS_L	GpioDataRegs.GPBCLEAR.bit.GPIO54 = 1
 
+#define LINE1 0x80
+#define LINE2 0x40
+#define CHARACTER_NUMBER_MAX 16
+
 void Gpio_Fnd_out(unsigned char da);
 void Gpio_select(void);
 
@@ -41,6 +45,13 @@ void lcdprint_data(char *str);
 void lcd_write(char data,unsigned char Rs);
 void lcd_Gpio_data_out(unsigned char da);
 void lcd_init(void);
+
+int Cycle = 0;
+int Pointer = 0;
+char Direction = 1;
+void RemoveCharacter();
+void MoveCharacter();
+void WriteOnLCD(char character, int column, int row);
 
 void main(){
 
@@ -50,54 +61,82 @@ void main(){
 	lcd_init();
 
 	// Initialize
-	int trigger = 1; // this makes it possible that codes activate only once in loop
-
-	lcdprint_data("2014039102");
+	lcd_write('0', 1);
 	lcd_write(0xC0, 0);
-	LED1_L;	LED2_L;
+	lcd_write('0', 1);
 
 	while(1)
 	{
-		lcd_write(0x0C, 0);
 
-		if(DIP1 && DIP2)
+		if(DIP1 && DIP2) // Display 1, 2 Column
 		{
-			trigger = 1;
-
-			lcd_write(0x1C, 0); // Right Shift
-			LED1_H; LED2_H; // LED1,2 ON
-			Gpio_Fnd_out(3); // FND 3
+			RemoveCharacter();
+			MoveCharacter();
+			WriteOnLCD('0', 0, Pointer);
+			WriteOnLCD('0', 1, Pointer);
 		}
-		else if(DIP1 && !DIP2)
+		else if(DIP1 && !DIP2) // Display 1 Column
 		{
-			trigger = 1;
-
-			lcd_write('2', 1); // Print 2 on LCD
-			LED1_H;	LED2_L; // LED1 On, LED2 Off
-			Gpio_Fnd_out(2); // FND 2
+			RemoveCharacter();
+			MoveCharacter();
+			WriteOnLCD('0', 0, Pointer);
 		}
-		else if(!DIP1 && DIP2)
+		else if(!DIP1 && DIP2) // Display 2 Column
 		{
-			trigger = 1;
-
-			lcd_write('1', 1); // Print 1 on LCD
-			LED1_L; LED2_H; // LED1 Off, LED2 On
-			Gpio_Fnd_out(1); // FND 1
+			RemoveCharacter();
+			MoveCharacter();
+			WriteOnLCD('0', 1, Pointer);
+		}
+		else if(!DIP1 && !DIP2) // Pause
+		{
 
 		}
-		else if(!DIP1 && !DIP2 && trigger)
-		{
-			trigger = 0;
+		DELAY_US(300000);
+	}
+}
 
-			lcd_write(0x01, 0); DELAY_US(10000); // Clear & Wait inner process
+void WriteOnLCD(char character, int column, int row)
+{
+	lcd_write(LINE1 + LINE2 * column + row, 0); // Move Cursor
+	DELAY_US(10000);
+	lcd_write(character, 1);
+}
 
-			// Re-Initialize
-			lcdprint_data("2014039102");
-			lcd_write(0xC0, 0); // Cursor Move
-			LED1_L;	LED2_L; // LED1,2 Off
-			Gpio_Fnd_out(0); // FND 0
-		}
-		DELAY_US(1000000);
+void RemoveCharacter()
+{
+	WriteOnLCD(' ', 0, Pointer);
+	WriteOnLCD(' ', 1, Pointer);
+}
+
+void MoveCharacter()
+{
+	if(Pointer >= 15 && Direction == 1) // Right End
+	{
+		Direction = -1;
+	}
+	else if(Pointer <= 0 && Direction == -1) // Left End
+	{
+		Direction = 1;
+
+		Gpio_Fnd_out(++Cycle);
+	}
+
+	if(Direction == 1) // Move Right
+	{
+		Pointer++;
+		LED1_L; LED2_T;
+	}
+	else if(Direction == -1) // Move Left
+	{
+		Pointer--;
+		LED1_T; LED2_L;
+	}
+	else
+	{
+		lcd_write(0x01,0); // Clear Display
+		DELAY_US(100000);
+		lcdprint_data("Error2 - MoveChar");
+		while(1);
 	}
 }
 
@@ -189,7 +228,7 @@ void lcd_Gpio_data_out(unsigned char da)
 
 void lcd_init(void)
 {
-	lcd_write(0x28,0);		//4bit data mode, 1 line, 5x7 dot
+	lcd_write(0x28,0);		//4bit data mode, 2 line, 5x7 dot
 	lcd_write(0x28,0);
 	lcd_write(0x0C,0);		//display on
 	lcd_write(0x01,0);		//Display Clear
