@@ -46,53 +46,112 @@ void lcd_write(char data,unsigned char Rs);
 void lcd_Gpio_data_out(unsigned char da);
 void lcd_init(void);
 
-int Cycle = 0;
-int Pointer = 0;
-char Direction = 1;
-void RemoveCharacter();
-void MoveCharacter();
+
 void WriteOnLCD(char character, int column, int row);
 
-void main(){
+inline void IncreaseTick(unsigned int tick);
+void ShowMode();
+void ShowTime();
+inline void CircleZero();
 
+unsigned int Tick = 0;
+char Direction = 1;
+int Pointer = 10;
+char Mode = 1;
+
+int trigger = 1;
+
+void main(){
 	InitSysCtrl();        //basic core initialization
 	DINT;                //Disable all interrupts
 	Gpio_select();
 	lcd_init();
 
-	// Initialize
-	lcd_write('0', 1);
-	lcd_write(0xC0, 0);
-	lcd_write('0', 1);
+	int second_trigger = 0; // this
 
+	ShowTime(); // Show Time Frame
 	while(1)
 	{
+		if(trigger) // this activates whenever mode is changed
+		{
+			ShowMode();
+			trigger = 0;
+		}
 
-		if(DIP1 && DIP2) // Display 1, 2 Column
-		{
-			RemoveCharacter();
-			MoveCharacter();
-			WriteOnLCD('0', 0, Pointer);
-			WriteOnLCD('0', 1, Pointer);
-		}
-		else if(DIP1 && !DIP2) // Display 1 Column
-		{
-			RemoveCharacter();
-			MoveCharacter();
-			WriteOnLCD('0', 0, Pointer);
-		}
-		else if(!DIP1 && DIP2) // Display 2 Column
-		{
-			RemoveCharacter();
-			MoveCharacter();
-			WriteOnLCD('0', 1, Pointer);
-		}
-		else if(!DIP1 && !DIP2) // Pause
-		{
+		if(Mode != 1 && Mode != 4)
+			CircleZero();
 
+		if(DIP1 && DIP2) // Pause
+		{
+			if(Mode != 1) // this activates once (Initialization)
+			{
+				Mode = 1;
+				trigger = 1;
+			}
 		}
-		DELAY_US(300000);
+		else if(DIP1 && !DIP2) // 1 Second Delay
+		{
+			if(Mode != 2) // this activates once (Initialization)
+			{
+				Mode = 2;
+				trigger = 1;
+				second_trigger = 0;
+
+				LED1_L;
+				LED2_H;
+			}
+
+			IncreaseTick(1);
+
+			if(++second_trigger >= 10)
+			{
+				second_trigger = 0;
+				ShowTime();
+
+				LED1_T;
+				LED2_T;
+			}
+		}
+		else if(!DIP1 && DIP2) // 0.1 Second Delay
+		{
+			if(Mode != 3) // this activates once (Initialization)
+			{
+				Mode = 3;
+				trigger = 1;
+
+				LED1_L;
+				LED2_H;
+			}
+
+			IncreaseTick(1);
+			ShowTime();
+
+			LED1_T;
+			LED2_T;
+		}
+		else if(!DIP1 && !DIP2) // re-initialize
+		{
+			if(Mode != 4) // this activates once (Initialization)
+			{
+				Mode = 4;
+				trigger = 1;
+
+				Tick = 0;
+				ShowTime();
+
+				LED1_L;
+				LED2_L;
+			}
+		}
+
+		DELAY_US(100000); // 0.1 second delay
 	}
+}
+
+//=================================== Custom Function =========================================
+inline void IncreaseTick(unsigned int tick)
+{
+	Tick += tick;
 }
 
 void WriteOnLCD(char character, int column, int row)
@@ -102,44 +161,54 @@ void WriteOnLCD(char character, int column, int row)
 	lcd_write(character, 1);
 }
 
-void RemoveCharacter()
+void ShowMode()
 {
-	WriteOnLCD(' ', 0, Pointer);
-	WriteOnLCD(' ', 1, Pointer);
+	int i;
+	for(i = 1; i <= 9; i++) WriteOnLCD(' ', 0, i); // Erase previous string
+
+	lcd_write(LINE1 + 1, 0); // Move Cursor
+	if(Mode == 1) lcdprint_data("Pause");
+	else if(Mode == 2) lcdprint_data("1s Mode");
+	else if(Mode == 3) lcdprint_data("0.1s Mode");
+	else if(Mode == 4) lcdprint_data("Off");
 }
 
-void MoveCharacter()
+void ShowTime()
 {
-	if(Pointer >= 15 && Direction == 1) // Right End
-	{
-		Direction = -1;
-	}
-	else if(Pointer <= 0 && Direction == -1) // Left End
-	{
-		Direction = 1;
+	lcd_write(LINE1 + LINE2 + 1, 0); // Move Cursor
+	int millisecond = Tick % 10; // 0.1s
+	int second = (int)(Tick / 10) % 60; // 1s
+	int minute = (int)(Tick / 600) % 60; // 1m
 
-		Gpio_Fnd_out(++Cycle);
-	}
+	// minute
+	lcd_write((char)(minute / 10 % 10 + 48), 1);
+	lcd_write((char)(minute % 10 + 48), 1);
+	lcd_write(':', 1);
 
-	if(Direction == 1) // Move Right
-	{
+	// second
+	lcd_write((char)(second / 10 % 10 + 48), 1);
+	lcd_write((char)(second % 10 + 48), 1);
+	lcd_write(':', 1);
+
+	// milli second
+	lcd_write((char)(millisecond + 48), 1);
+}
+
+inline void CircleZero()
+{
+	WriteOnLCD(' ', 0, Pointer); // Erase previous zero
+
+	if(Pointer <= 10 && Direction == -1 || Pointer >= 15 && Direction == 1) // Check changing direction
+		Direction *= -1;
+
+	if(Direction == 1) // Right Shift
 		Pointer++;
-		LED1_L; LED2_T;
-	}
-	else if(Direction == -1) // Move Left
-	{
+	else if (Direction == -1) // Left Shift
 		Pointer--;
-		LED1_T; LED2_L;
-	}
-	else
-	{
-		lcd_write(0x01,0); // Clear Display
-		DELAY_US(100000);
-		lcdprint_data("Error2 - MoveChar");
-		while(1);
-	}
-}
 
+	WriteOnLCD('0', 0, Pointer); // Write new zero
+}
+//======================================================================================
 void Gpio_Fnd_out(unsigned char da)
 {
 	if(da & 0x01)	FNDA_H;
