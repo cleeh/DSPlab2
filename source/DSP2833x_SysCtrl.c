@@ -269,7 +269,7 @@ void InitPeripheralClocks(void)
    // See the device data manual and/or the ADC Reference
    // Manual for more information.
 
-/*   ADC_cal();
+   ADC_cal();
 
 
    SysCtrlRegs.PCLKCR0.bit.I2CAENCLK = 1;   // I2C
@@ -305,7 +305,7 @@ void InitPeripheralClocks(void)
    SysCtrlRegs.PCLKCR3.bit.CPUTIMER2ENCLK = 1; // CPU Timer 2
 
    SysCtrlRegs.PCLKCR3.bit.DMAENCLK = 1;       // DMA Clock
-*/   SysCtrlRegs.PCLKCR3.bit.XINTFENCLK = 1;     // XTIMCLK
+   SysCtrlRegs.PCLKCR3.bit.XINTFENCLK = 1;     // XTIMCLK
    SysCtrlRegs.PCLKCR3.bit.GPIOINENCLK = 1;    // GPIO input clock
 
    EDIS;

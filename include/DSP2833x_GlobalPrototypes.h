@@ -20,8 +20,8 @@ extern "C" {
 #endif
 
 /*---- shared global function prototypes -----------------------------------*/
-/*extern void InitAdc(void);
-
+extern void InitAdc(void);
+/*
 extern void DMAInitialize(void);
 // DMA Channel 1
 extern void DMACH1AddrConfig(volatile Uint16 *DMA_Dest,volatile Uint16 *DMA_Source);
@@ -138,10 +138,10 @@ extern void InitMcbspb20bit(void);
 extern void InitMcbspb24bit(void);
 extern void InitMcbspb32bit(void);
 #endif // endif DSP28_MCBSPB
-
+*/
 extern void InitPieCtrl(void);
 extern void InitPieVectTable(void);
-
+/*
 extern void InitSci(void);
 extern void InitSciGpio(void);
 extern void InitSciaGpio(void);
@@ -154,17 +154,17 @@ extern void InitScicGpio(void);
 extern void InitSpi(void);
 extern void InitSpiGpio(void);
 extern void InitSpiaGpio(void);*/
-extern void InitSysCtrl(void);/*
-extern void InitTzGpio(void);
+extern void InitSysCtrl(void);
+//extern void InitTzGpio(void);
 extern void InitXIntrupt(void);
-extern void XintfInit(void);
+/*extern void XintfInit(void);
 extern void InitXintf16Gpio();
 extern void InitXintf32Gpio();*/
 extern void InitPll(Uint16 pllcr, Uint16 clkindiv);
 extern void InitPeripheralClocks(void);
-//extern void EnableInterrupts(void);
+extern void EnableInterrupts(void);
 extern void DSP28x_usDelay(Uint32 Count);
-//extern void ADC_cal (void);
+extern void ADC_cal (void);
 #define KickDog ServiceDog     // For compatiblity with previous versions
 //extern void ServiceDog(void);
 extern void DisableDog(void);

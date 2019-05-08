@@ -101,11 +101,11 @@ typedef long double        float64;
 //---------------------------------------------------------------------------
 // Include All Peripheral Header Files:
 //
-/*
+
 #include "DSP2833x_Adc.h"                // ADC Registers
-#include "DSP2833x_DevEmu.h"             // Device Emulation Registers
+//#include "DSP2833x_DevEmu.h"             // Device Emulation Registers
 #include "DSP2833x_CpuTimers.h"          // 32-bit CPU Timers
-#include "DSP2833x_ECan.h"               // Enhanced eCAN Registers
+/*#include "DSP2833x_ECan.h"               // Enhanced eCAN Registers
 #include "DSP2833x_ECap.h"               // Enhanced Capture
 #include "DSP2833x_DMA.h"                // DMA Registers
 #include "DSP2833x_EPwm.h"               // Enhanced PWM
@@ -113,12 +113,12 @@ typedef long double        float64;
 */#include "DSP2833x_Gpio.h"               // General Purpose I/O Registers
 /*#include "DSP2833x_I2c.h"                // I2C Registers
 #include "DSP2833x_McBSP.h"              // McBSP
-#include "DSP2833x_PieCtrl.h"            // PIE Control Registers
+*/#include "DSP2833x_PieCtrl.h"            // PIE Control Registers
 #include "DSP2833x_PieVect.h"            // PIE Vector Table
-#include "DSP2833x_Spi.h"                // SPI Registers
+/*#include "DSP2833x_Spi.h"                // SPI Registers
 #include "DSP2833x_Sci.h"                // SCI Registers
 */#include "DSP2833x_SysCtrl.h"            // System Control/Power Modes
-//#include "DSP2833x_XIntrupt.h"           // External Interrupts
+#include "DSP2833x_XIntrupt.h"           // External Interrupts
 //#include "DSP2833x_Xintf.h"              // XINTF External Interface
 /*
 #if DSP28_28335

@@ -16,7 +16,7 @@
 //---------------------------------------------------------------------------
 // Define Global Peripheral Variables:
 //
-/*//----------------------------------------
+//----------------------------------------
 #ifdef __cplusplus
 #pragma DATA_SECTION("AdcRegsFile")
 #else
@@ -56,7 +56,7 @@ volatile struct CPUTIMER_REGS CpuTimer1Regs;
 #pragma DATA_SECTION(CpuTimer2Regs,"CpuTimer2RegsFile");
 #endif
 volatile struct CPUTIMER_REGS CpuTimer2Regs;
-*/
+
 
 //----------------------------------------
 #ifdef __cplusplus
@@ -346,7 +346,7 @@ volatile struct MCBSP_REGS McbspbRegs;
 #pragma DATA_SECTION(PartIdRegs,"PartIdRegsFile");
 #endif
 volatile struct PARTID_REGS PartIdRegs;
-
+*/
 //----------------------------------------
 #ifdef __cplusplus
 #pragma DATA_SECTION("PieCtrlRegsFile")
@@ -362,7 +362,7 @@ volatile struct PIE_CTRL_REGS PieCtrlRegs;
 #pragma DATA_SECTION(PieVectTable,"PieVectTableFile");
 #endif
 struct PIE_VECT_TABLE PieVectTable;
-
+/*
 //----------------------------------------
 #ifdef __cplusplus
 #pragma DATA_SECTION("SciaRegsFile")
@@ -411,7 +411,7 @@ volatile struct SYS_CTRL_REGS SysCtrlRegs;
 #pragma DATA_SECTION(FlashRegs,"FlashRegsFile");
 #endif
 volatile struct FLASH_REGS FlashRegs;
-/*
+
 //----------------------------------------
 #ifdef __cplusplus
 #pragma DATA_SECTION("XIntruptRegsFile")
@@ -419,7 +419,7 @@ volatile struct FLASH_REGS FlashRegs;
 #pragma DATA_SECTION(XIntruptRegs,"XIntruptRegsFile");
 #endif
 volatile struct XINTRUPT_REGS XIntruptRegs;
-
+/*
 //----------------------------------------
 #ifdef __cplusplus
 #pragma DATA_SECTION("XintfRegsFile")
