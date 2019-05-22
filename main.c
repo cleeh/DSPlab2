@@ -1,5 +1,6 @@
 #include "DSP2833x_Device.h"
 #include "DSP2833x_Examples.h"
+#include "stdlib.h"
 
 #define LED1	GpioDataRegs.GPADAT.bit.GPIO25
 #define LED2	GpioDataRegs.GPADAT.bit.GPIO24
@@ -9,6 +10,9 @@
 #define LED2_L	GpioDataRegs.GPACLEAR.bit.GPIO24 = 1	//GPIO24 핀 LOW
 #define LED1_T	GpioDataRegs.GPATOGGLE.bit.GPIO25 = 1	//GPIO25 핀 현재값에 반전
 #define LED2_T	GpioDataRegs.GPATOGGLE.bit.GPIO24 = 1	//GPIO24 핀 현재값에 반전
+
+#define DIP1	GpioDataRegs.GPBDAT.bit.GPIO48
+#define DIP2	GpioDataRegs.GPBDAT.bit.GPIO49
 
 #define LCDD0_H	GpioDataRegs.GPBSET.bit.GPIO57 = 1
 #define LCDD1_H	GpioDataRegs.GPBSET.bit.GPIO56 = 1
@@ -27,6 +31,8 @@
 #define LINE2 0x40
 #define CHARACTER_NUMBER_MAX 16
 
+#define GAME_TIME_LIMIT 600 // 300 second
+
 interrupt void XINT1_isr(void);
 interrupt void XINT2_isr(void);
 interrupt void cpu_timer0_isr(void);
@@ -39,36 +45,57 @@ void lcd_write(char data,unsigned char Rs);
 void lcd_Gpio_data_out(unsigned char da);
 void lcd_init(void);
 
-inline void IncreaseTick(unsigned int tick);
+typedef enum{
+	GNULL,
+	GameWin,
+	TimeOut
+}EGameState;
+
+typedef enum{
+	ANULL,
+	Success,
+	Fail
+}EAnswerState;
+
+inline void AddTick(int tick);
+inline void ResetTick();
 void ShowTime();
 
-enum TimerMode{
-	Timer,
-	StopWatch
-};
+int GetRandomNumberBetween(int from, int to);
 
-unsigned int Tick = 0;
-unsigned int SavedTick = 0;
-unsigned int ClickedNumber = 0;
-unsigned int Trigger = 0;
-int Mode = Timer;
+void InitializeGame();
+void EndGame();
+void ShowString(char* str);
+void ShowGameState();
+void ShowAnswerState();
+inline int GetUserInput();
+
+int Tick = GAME_TIME_LIMIT;
+
+int TargetNumber = -1;
+int UserInput100 = 0;
+int UserInput10 = 0;
+int UserInput1 = 0;
+int UserInputAdder = 1;
+int GameOffTrigger = 1;
+
+EGameState GameState = GNULL;
 
 interrupt void XINT1_isr(void)
 {
 	DINT;
 
-	if(ClickedNumber++ > 0)
+	if(DIP1 && !DIP2) // Start timer & Create random number & Restart game
 	{
-		ClickedNumber = 0;
-		Tick = 0;
-		SavedTick = 0;
-
-		lcd_write(LINE1 + LINE2 + 1, 0); // Move Cursor
-		lcdprint_data("Initialized!");
-		Trigger = 1;
+		InitializeGame();
+		ShowAnswer();
 	}
-	SavedTick = Tick;
-	LED1_T;
+	else if(!DIP1 && DIP2) // Game off
+	{
+		lcd_write(LINE1 + LINE2 + 1, 0); // Move Cursor
+		lcdprint_data("Game Off");
+		GameOffTrigger = 1;
+	}
 
 	EINT;
 	PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
@@ -78,10 +105,30 @@ interrupt void XINT2_isr(void)
 {
 	DINT;
 
-	ClickedNumber = 0;
-	if(Mode == Timer) Mode = StopWatch;
-	else if(Mode == StopWatch) Mode = Timer;
-	LED2_T;
+	if(DIP1 && DIP2) // Check Answer
+	{
+		ShowAnswerState();
+	}
+	else if(DIP1 && !DIP2) // Increase User Input
+	{
+		if(UserInputAdder == 100 && UserInput10 == 0 && UserInput1 == 0)
+			UserInput100 = ++UserInput100 % 2;
+		else if(UserInputAdder == 10 && GetUserInput() < 100)
+			UserInput10 = ++UserInput10 % 10;
+		else if (UserInputAdder = 1 && GetUserInput() < 100)
+			UserInput1 = ++UserInput1 % 10;
+	}
+	else if(!DIP1 && DIP2) // Change where to increase on Input
+	{
+		UserInputAdder *= 10;
+		if(UserInputAdder > 100) UserInputAdder = 1;
+
+	}
+	else if(!DIP1 && !DIP2)
+	{
+		if(UserInputAdder < 10) UserInputAdder = 100;
+		else UserInputAdder /= 10;
+	}
 
 	EINT;
 	PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
@@ -90,16 +137,18 @@ interrupt void XINT2_isr(void)
 interrupt void cpu_timer0_isr(void)
 {
 	DINT;
-
-	IncreaseTick(1);
-	if(Mode == Timer) ShowTime();
-	else if(Mode == StopWatch) ShowSavedTime();
-
-	if(Trigger && Tick >= 30)
+	if(!GameOffTrigger)
 	{
-		Trigger = 0;
-		lcd_write(LINE1 + LINE2 + 1, 0); // Move Cursor
-		lcdprint_data("            "); // Erase
+		ShowTime();
+
+		AddTick(-1);
+		if(Tick <= 0)
+		{
+			GameState = TimeOut;
+			ShowGameState();
+		}
+
+		ShowUserInput();
 	}
 
 	EINT;
@@ -157,6 +206,9 @@ void main(void)
 
 	LED1_L;
 	LED2_L;
+
+	ShowTime();
+	ShowUserInput();
 
 	for(;;);
 
@@ -232,12 +284,24 @@ void lcd_init(void)
 	lcd_write(0x06,0);		//Entry mode
 }
 
-inline void IncreaseTick(unsigned int tick)
+//=================================== Custom Function =========================================
+
+inline void AddTick(int tick)
 {
 	Tick += tick;
 }
 
-//=================================== Custom Function =========================================
+inline void ResetTick()
+{
+	Tick = GAME_TIME_LIMIT;
+}
+
+int GetRandomNumberBetween(int from, int to)
+{
+	srand(Tick); // 의사 랜덤 함수로 만들어야함
+
+	return rand() % (to - from + 1) + from;
+}
 
 void ShowTime()
 {
@@ -246,6 +310,13 @@ void ShowTime()
 	int second = (int)(Tick / 10) % 60; // 1s
 	int minute = (int)(Tick / 600) % 60; // 1m
 
+	if(Tick < 0)
+	{
+		millisecond = 0; // 0.1s
+		second = 0; // 1s
+		minute = 0; // 1m
+	}
+
 	// minute
 	lcd_write((char)(minute / 10 % 10 + 48), 1);
 	lcd_write((char)(minute % 10 + 48), 1);
@@ -260,23 +331,87 @@ void ShowTime()
 	lcd_write((char)(millisecond + 48), 1);
 }
 
-void ShowSavedTime()
+void InitializeGame()
 {
-	lcd_write(LINE1 + 1, 0); // Move Cursor
-	int millisecond = SavedTick % 10; // 0.1s
-	int second = (int)(SavedTick / 10) % 60; // 1s
-	int minute = (int)(SavedTick / 600) % 60; // 1m
+	// Clear
+	lcd_write(0x01,0);		//Display Clear
+	DELAY_US(1960);
+	GameOffTrigger = 0;
+	UserInputAdder = 1;
+
+	// Set random target number
+	TargetNumber = GetRandomNumberBetween(1, 100);
+	ShowAnswer();
+
+	// Start timer
+	ResetTick();
+
+	// Restart game
+	UserInput100 = 0;
+	UserInput10 = 0;
+	UserInput1 = 0;
+
+}
+
+void ShowUserInput()
+{
+	lcd_write(LINE1 + LINE2 + 1, 0); // Move Cursor
+
+	if(UserInput100 * 100 + UserInput10 * 10 + UserInput1 >= 0)
+	{
+		lcd_write((char)(UserInput100 + 48), 1);
+		lcd_write((char)(UserInput10 + 48), 1);
+		lcd_write((char)(UserInput1 + 48), 1);
+	}
+	else
+	{
+		int i = 0;
+		for(i = 0; i < 3; i++)
+			lcd_write((char)48, 1);
+	}
+}
+
+void ShowString(char* str)
+{
+	lcd_write(LINE1 + LINE2 + 5, 0); // Move Cursor
+
+	lcdprint_data(str);
+}
+
+void ShowGameState()
+{
+	if(GameState == GameWin)
+		ShowString("You Win");
+	else if(GameState == TimeOut)
+		ShowString("Time Out");
+}
+
+void ShowAnswerState()
+{
+	if(TargetNumber == UserInput100 * 100 + UserInput10 * 10 + UserInput1)
+	{
+		ShowString("Success");
+		DELAY_US(1000000);
+		ShowString("You Win!!");
+		DELAY_US(1000000);
+		InitializeGame();
+
+	}
+	else
+		ShowString("Fail");
+}
+
+void ShowAnswer()
+{
+	lcd_write(LINE1 + LINE2 + 13, 0); // Move Cursor
 
 	// minute
-	lcd_write((char)(minute / 10 % 10 + 48), 1);
-	lcd_write((char)(minute % 10 + 48), 1);
-	lcd_write(':', 1);
+	lcd_write((char)(TargetNumber / 100 + 48), 1);
+	lcd_write((char)(TargetNumber % 100 / 10 + 48), 1);
+	lcd_write((char)(TargetNumber % 10 + 48), 1);
+}
 
-	// second
-	lcd_write((char)(second / 10 % 10 + 48), 1);
-	lcd_write((char)(second % 10 + 48), 1);
-	lcd_write(':', 1);
-
-	// milli second
-	lcd_write((char)(millisecond + 48), 1);
+inline int GetUserInput()
+{
+	return UserInput100 * 100 + UserInput10 * 10 + UserInput1;
 }
