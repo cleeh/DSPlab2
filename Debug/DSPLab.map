@@ -1,10 +1,10 @@
 ******************************************************************************
              TMS320C2000 Linker PC v6.4.6                      
 ******************************************************************************
->> Linked Wed May 22 12:02:32 2019
+>> Linked Wed May 29 11:30:38 2019
 
 OUTPUT FILE NAME:   <DSPLab.out>
-ENTRY POINT SYMBOL: "_c_int00"  address: 00009771
+ENTRY POINT SYMBOL: "_c_int00"  address: 000096d7
 
 
 MEMORY CONFIGURATION
@@ -14,8 +14,8 @@ MEMORY CONFIGURATION
 PAGE 0:
   BEGIN                 00000000   00000002  00000000  00000002  RWIX
   RAMM0                 00000050   000003b0  00000000  000003b0  RWIX
-  RAML0                 00008000   00001000  0000003f  00000fc1  RWIX
-  RAML1                 00009000   00001000  000008c9  00000737  RWIX
+  RAML0                 00008000   00001000  00000033  00000fcd  RWIX
+  RAML1                 00009000   00001000  0000082f  000007d1  RWIX
   RAML2                 0000a000   00001000  00000000  00001000  RWIX
   RAML3                 0000b000   00001000  00000000  00001000  RWIX
   ZONE7A                00200000   0000fc00  00000000  0000fc00  RWIX
@@ -79,8 +79,8 @@ PAGE 1:
   SCIB                  00007750   00000010  00000000  00000010  RWIX
   SCIC                  00007770   00000010  00000000  00000010  RWIX
   I2CA                  00007900   00000040  00000000  00000040  RWIX
-  RAML4                 0000c000   00001000  0000001e  00000fe2  RWIX
-  RAML5                 0000d000   00001000  00000133  00000ecd  RWIX
+  RAML4                 0000c000   00001000  0000001c  00000fe4  RWIX
+  RAML5                 0000d000   00001000  00000161  00000e9f  RWIX
   RAML6                 0000e000   00001000  00000000  00001000  RWIX
   RAML7                 0000f000   00001000  00000000  00001000  RWIX
   ZONE7B                0020fc00   00000400  00000000  00000400  RWIX
@@ -93,31 +93,31 @@ SECTION ALLOCATION MAP
  output                                  attributes/
 section   page    origin      length       input sections
 --------  ----  ----------  ----------   ----------------
-.cinit     0    00008000    0000003b     
-                  00008000    00000020     main.obj (.cinit)
-                  00008020    0000000a     rts2800_fpu32.lib : exit.obj (.cinit)
-                  0000802a    00000005                       : _lock.obj (.cinit:__lock)
-                  0000802f    00000005                       : _lock.obj (.cinit:__unlock)
-                  00008034    00000005                       : rand.obj (.cinit)
-                  00008039    00000002     --HOLE-- [fill = 0]
+.cinit     0    00008000    0000002f     
+                  00008000    00000014     main.obj (.cinit)
+                  00008014    0000000a     rts2800_fpu32.lib : exit.obj (.cinit)
+                  0000801e    00000005                       : _lock.obj (.cinit:__lock)
+                  00008023    00000005                       : _lock.obj (.cinit:__unlock)
+                  00008028    00000005                       : rand.obj (.cinit)
+                  0000802d    00000002     --HOLE-- [fill = 0]
 
-ramfuncs   0    0000803b    00000004     
-                  0000803b    00000004     DSP2833x_usDelay.obj (ramfuncs)
+ramfuncs   0    0000802f    00000004     
+                  0000802f    00000004     DSP2833x_usDelay.obj (ramfuncs)
 
-.text      0    00009000    000008c9     
+.text      0    00009000    0000082f     
                   00009000    00000316     DSP2833x_DefaultIsr.obj (.text:retain)
-                  00009316    0000024c     main.obj (.text)
-                  00009562    00000123     main.obj (.text:retain)
-                  00009685    000000ec     DSP2833x_SysCtrl.obj (.text)
-                  00009771    00000046     rts2800_fpu32.lib : boot.obj (.text)
-                  000097b7    0000003d     DSP2833x_CpuTimers.obj (.text)
-                  000097f4    0000002e     rts2800_fpu32.lib : rand.obj (.text)
-                  00009822    00000028     DSP2833x_PieCtrl.obj (.text)
-                  0000984a    00000022     DSP2833x_PieVect.obj (.text)
-                  0000986c    00000022     rts2800_fpu32.lib : i_div.obj (.text)
-                  0000988e    00000019                       : args_main.obj (.text)
-                  000098a7    00000019                       : exit.obj (.text)
-                  000098c0    00000009                       : _lock.obj (.text)
+                  00009316    00000223     main.obj (.text)
+                  00009539    000000ec     DSP2833x_SysCtrl.obj (.text)
+                  00009625    000000b2     main.obj (.text:retain)
+                  000096d7    00000046     rts2800_fpu32.lib : boot.obj (.text)
+                  0000971d    0000003d     DSP2833x_CpuTimers.obj (.text)
+                  0000975a    0000002e     rts2800_fpu32.lib : rand.obj (.text)
+                  00009788    00000028     DSP2833x_PieCtrl.obj (.text)
+                  000097b0    00000022     DSP2833x_PieVect.obj (.text)
+                  000097d2    00000022     rts2800_fpu32.lib : i_div.obj (.text)
+                  000097f4    00000019                       : args_main.obj (.text)
+                  0000980d    00000019                       : exit.obj (.text)
+                  00009826    00000009                       : _lock.obj (.text)
 
 .pinit     0    00008000    00000000     UNINITIALIZED
 
@@ -159,17 +159,17 @@ PieVectTableFile
 *          1    00000d00    00000100     UNINITIALIZED
                   00000d00    00000100     DSP2833x_GlobalVariableDefs.obj (PieVectTableFile)
 
-.ebss      1    0000c000    0000001e     UNINITIALIZED
+.ebss      1    0000c000    0000001c     UNINITIALIZED
                   0000c000    0000000c     DSP2833x_CpuTimers.obj (.ebss)
-                  0000c00c    00000008     main.obj (.ebss)
-                  0000c014    00000004     rts2800_fpu32.lib : exit.obj (.ebss)
-                  0000c018    00000002                       : _lock.obj (.ebss:__lock)
-                  0000c01a    00000002                       : _lock.obj (.ebss:__unlock)
-                  0000c01c    00000002                       : rand.obj (.ebss)
+                  0000c00c    00000006     main.obj (.ebss)
+                  0000c012    00000004     rts2800_fpu32.lib : exit.obj (.ebss)
+                  0000c016    00000002                       : _lock.obj (.ebss:__lock)
+                  0000c018    00000002                       : _lock.obj (.ebss:__unlock)
+                  0000c01a    00000002                       : rand.obj (.ebss)
 
-.econst    1    0000d000    00000133     
+.econst    1    0000d000    00000161     
                   0000d000    00000100     DSP2833x_PieVect.obj (.econst)
-                  0000d100    00000033     main.obj (.econst:.string)
+                  0000d100    00000061     main.obj (.econst:.string)
 
 .reset     0    003fffc0    00000002     DSECT
                   003fffc0    00000002     rts2800_fpu32.lib : boot.obj (.reset)
@@ -242,18 +242,16 @@ address     data page           name
 0000c000     300 (0000c000)     _CpuTimer1
 0000c004     300 (0000c000)     _CpuTimer2
 0000c008     300 (0000c000)     _CpuTimer0
-0000c00c     300 (0000c000)     _UserInput10
-0000c00d     300 (0000c000)     _Tick
-0000c00e     300 (0000c000)     _UserInput100
-0000c00f     300 (0000c000)     _UserInput1
-0000c010     300 (0000c000)     _UserInputAdder
-0000c011     300 (0000c000)     _GameState
-0000c012     300 (0000c000)     _GameOffTrigger
-0000c013     300 (0000c000)     _TargetNumber
-0000c014     300 (0000c000)     ___TI_cleanup_ptr
-0000c016     300 (0000c000)     ___TI_dtors_ptr
-0000c018     300 (0000c000)     __lock
-0000c01a     300 (0000c000)     __unlock
+0000c00c     300 (0000c000)     _Tick
+0000c00d     300 (0000c000)     _InputTickLimit
+0000c00e     300 (0000c000)     _LoseNumber
+0000c00f     300 (0000c000)     _DrawNumber
+0000c010     300 (0000c000)     _GameMode
+0000c011     300 (0000c000)     _WinNumber
+0000c012     300 (0000c000)     ___TI_cleanup_ptr
+0000c014     300 (0000c000)     ___TI_dtors_ptr
+0000c016     300 (0000c000)     __lock
+0000c018     300 (0000c000)     __unlock
 
 0000d000     340 (0000d000)     _PieVectTableInit
 
@@ -265,14 +263,17 @@ GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name
 page  address   name                   
 ----  -------   ----                   
 0     00009000  .text                  
-0     000098a7  C$$EXIT                
-0     0000986c  I$$DIV                 
-0     0000987d  I$$MOD                 
+0     0000980d  C$$EXIT                
+0     000097d2  I$$DIV                 
+0     000097e3  I$$MOD                 
 0     000090e6  _ADCINT_ISR            
 0     00380080  _ADC_cal               
 1     00000b00  _AdcMirror             
 1     00007100  _AdcRegs               
-0     000097c3  _ConfigCpuTimer        
+0     00009491  _CheckRemainingGameTime
+0     0000948b  _CheckWinner           
+0     000093f0  _ClearOnLCD            
+0     00009729  _ConfigCpuTimer        
 1     0000c008  _CpuTimer0             
 1     00000c00  _CpuTimer0Regs         
 1     0000c000  _CpuTimer1             
@@ -281,7 +282,7 @@ page  address   name
 1     00000c10  _CpuTimer2Regs         
 1     0033fff8  _CsmPwl                
 1     00000ae0  _CsmRegs               
-0     00009740  _CsmUnlock             
+0     000095f4  _CsmUnlock             
 0     00009014  _DATALOG_ISR           
 0     00009208  _DINTCH1_ISR           
 0     00009212  _DINTCH2_ISR           
@@ -289,8 +290,9 @@ page  address   name
 0     00009226  _DINTCH4_ISR           
 0     00009230  _DINTCH5_ISR           
 0     0000923a  _DINTCH6_ISR           
-0     0000803b  _DSP28x_usDelay        
-0     00009698  _DisableDog            
+0     0000802f  _DSP28x_usDelay        
+0     0000954c  _DisableDog            
+1     0000c00f  _DrawNumber            
 0     00009294  _ECAN0INTA_ISR         
 0     000092a8  _ECAN0INTB_ISR         
 0     0000929e  _ECAN1INTA_ISR         
@@ -316,33 +318,37 @@ page  address   name
 0     00009136  _EPWM6_TZINT_ISR       
 0     000091b8  _EQEP1_INT_ISR         
 0     000091c2  _EQEP2_INT_ISR         
-0     00009841  _EnableInterrupts      
+0     000097a7  _EnableInterrupts      
 1     00000a80  _FlashRegs             
-1     0000c012  _GameOffTrigger        
-1     0000c011  _GameState             
-0     0000942f  _GetRandomNumberBetween
+1     0000c010  _GameMode              
+0     0000948e  _GetRPS7Input          
+0     00009488  _GetRPSInput           
+0     000093fd  _GetRandomNumberBetween
 1     00006f80  _GpioCtrlRegs          
 1     00006fc0  _GpioDataRegs          
 1     00006fe0  _GpioIntRegs           
-0     0000938a  _Gpio_select           
+0     00009494  _Gpio_select           
 0     00009244  _I2CINT1A_ISR          
 0     0000924e  _I2CINT2A_ISR          
 0     0000903c  _ILLEGAL_ISR           
 0     00009000  _INT13_ISR             
 0     0000900a  _INT14_ISR             
-0     000097b7  _InitCpuTimers         
-0     000096f1  _InitPeripheralClocks  
-0     00009822  _InitPieCtrl           
-0     0000984a  _InitPieVectTable      
-0     000096a0  _InitPll               
-0     00009685  _InitSysCtrl           
-0     000094a3  _InitializeGame        
+0     0000971d  _InitCpuTimers         
+0     000095a5  _InitPeripheralClocks  
+0     00009788  _InitPieCtrl           
+0     000097b0  _InitPieVectTable      
+0     00009554  _InitPll               
+0     00009539  _InitSysCtrl           
+0     00009411  _InitializeGame        
+1     0000c00d  _InputTickLimit        
 0     000092f8  _LUF_ISR               
 0     000092ee  _LVF_ISR               
+1     0000c00e  _LoseNumber            
 0     000091f4  _MRINTA_ISR            
 0     000091e0  _MRINTB_ISR            
 0     000091fe  _MXINTA_ISR            
 0     000091ea  _MXINTB_ISR            
+0     00009377  _MoveCursor            
 0     00009032  _NMI_ISR               
 0     00009302  _PIE_RESERVED          
 1     00000ce0  _PieCtrlRegs           
@@ -359,17 +365,14 @@ page  address   name
 0     000090c8  _SEQ2INT_ISR           
 0     000091cc  _SPIRXINTA_ISR         
 0     000091d6  _SPITXINTA_ISR         
-0     0000968e  _ServiceDog            
-0     00009536  _ShowAnswer            
-0     00009510  _ShowAnswerState       
-0     000094ff  _ShowGameState         
-0     000094f4  _ShowString            
-0     00009443  _ShowTime              
-0     000094c0  _ShowUserInput         
+0     00009542  _ServiceDog            
+0     00009419  _SetGameTime           
+0     0000944f  _ShowPreviousResults   
+0     00009440  _StartGame             
+0     0000941c  _SwitchGameMode        
 1     00007010  _SysCtrlRegs           
 0     000090f0  _TINT0_ISR             
-1     0000c013  _TargetNumber          
-1     0000c00d  _Tick                  
+1     0000c00c  _Tick                  
 0     000090a0  _USER10_ISR            
 0     000090aa  _USER11_ISR            
 0     000090b4  _USER12_ISR            
@@ -382,15 +385,14 @@ page  address   name
 0     00009082  _USER7_ISR             
 0     0000908c  _USER8_ISR             
 0     00009096  _USER9_ISR             
-1     0000c00f  _UserInput1            
-1     0000c00c  _UserInput10           
-1     0000c00e  _UserInput100          
-1     0000c010  _UserInputAdder        
 0     000090fa  _WAKEINT_ISR           
+1     0000c011  _WinNumber             
+0     000093a3  _WriteNumberOnLCD      
+0     00009393  _WriteOnLCD            
 0     000090d2  _XINT1_ISR             
-0     00009562  _XINT1_isr             
+0     00009625  _XINT1_isr             
 0     000090dc  _XINT2_ISR             
-0     000095af  _XINT2_isr             
+0     00009672  _XINT2_isr             
 0     000092bc  _XINT3_ISR             
 0     000092c6  _XINT4_ISR             
 0     000092d0  _XINT5_ISR             
@@ -399,36 +401,36 @@ page  address   name
 1     00007070  _XIntruptRegs          
 1     00000700  __STACK_END            
 abs   00000300  __STACK_SIZE           
-1     0000c014  ___TI_cleanup_ptr      
-1     0000c016  ___TI_dtors_ptr        
+1     0000c012  ___TI_cleanup_ptr      
+1     0000c014  ___TI_dtors_ptr        
 abs   ffffffff  ___binit__             
 abs   ffffffff  ___c_args__            
 0     00008000  ___cinit__             
-0     000098c9  ___etext__             
+0     0000982f  ___etext__             
 abs   ffffffff  ___pinit__             
 0     00009000  ___text__              
-0     0000988e  __args_main            
-1     0000c018  __lock                 
-0     000098c8  __nop                  
-0     000098c4  __register_lock        
-0     000098c0  __register_unlock      
+0     000097f4  __args_main            
+1     0000c016  __lock                 
+0     0000982e  __nop                  
+0     0000982a  __register_lock        
+0     00009826  __register_unlock      
 1     00000400  __stack                
-1     0000c01a  __unlock               
-0     000098a7  _abort                 
-0     00009771  _c_int00               
-0     00009641  _cpu_timer0_isr        
-0     000098a9  _exit                  
-0     000093f1  _lcd_Gpio_data_out     
-0     00009415  _lcd_init              
-0     000093b4  _lcd_write             
-0     000093a3  _lcdprint_data         
-0     0000932b  _main                  
-0     00009804  _rand                  
+1     0000c018  __unlock               
+0     0000980d  _abort                 
+0     000096d7  _c_int00               
+0     000096c1  _cpu_timer0_isr        
+0     0000980f  _exit                  
+0     000094fb  _lcd_Gpio_data_out     
+0     0000951f  _lcd_init              
+0     000094be  _lcd_write             
+0     000094ad  _lcdprint_data         
+0     00009316  _main                  
+0     0000976a  _rand                  
 0     0000930c  _rsvd_ISR              
-0     000097f4  _srand                 
+0     0000975a  _srand                 
 abs   ffffffff  binit                  
 0     00008000  cinit                  
-0     000098c9  etext                  
+0     0000982f  etext                  
 abs   ffffffff  pinit                  
 
 
@@ -438,7 +440,7 @@ page  address   name
 ----  -------   ----                   
 0     00008000  ___cinit__             
 0     00008000  cinit                  
-0     0000803b  _DSP28x_usDelay        
+0     0000802f  _DSP28x_usDelay        
 0     00009000  .text                  
 0     00009000  _INT13_ISR             
 0     00009000  ___text__              
@@ -520,48 +522,54 @@ page  address   name
 0     000092f8  _LUF_ISR               
 0     00009302  _PIE_RESERVED          
 0     0000930c  _rsvd_ISR              
-0     0000932b  _main                  
-0     0000938a  _Gpio_select           
-0     000093a3  _lcdprint_data         
-0     000093b4  _lcd_write             
-0     000093f1  _lcd_Gpio_data_out     
-0     00009415  _lcd_init              
-0     0000942f  _GetRandomNumberBetween
-0     00009443  _ShowTime              
-0     000094a3  _InitializeGame        
-0     000094c0  _ShowUserInput         
-0     000094f4  _ShowString            
-0     000094ff  _ShowGameState         
-0     00009510  _ShowAnswerState       
-0     00009536  _ShowAnswer            
-0     00009562  _XINT1_isr             
-0     000095af  _XINT2_isr             
-0     00009641  _cpu_timer0_isr        
-0     00009685  _InitSysCtrl           
-0     0000968e  _ServiceDog            
-0     00009698  _DisableDog            
-0     000096a0  _InitPll               
-0     000096f1  _InitPeripheralClocks  
-0     00009740  _CsmUnlock             
-0     00009771  _c_int00               
-0     000097b7  _InitCpuTimers         
-0     000097c3  _ConfigCpuTimer        
-0     000097f4  _srand                 
-0     00009804  _rand                  
-0     00009822  _InitPieCtrl           
-0     00009841  _EnableInterrupts      
-0     0000984a  _InitPieVectTable      
-0     0000986c  I$$DIV                 
-0     0000987d  I$$MOD                 
-0     0000988e  __args_main            
-0     000098a7  C$$EXIT                
-0     000098a7  _abort                 
-0     000098a9  _exit                  
-0     000098c0  __register_unlock      
-0     000098c4  __register_lock        
-0     000098c8  __nop                  
-0     000098c9  ___etext__             
-0     000098c9  etext                  
+0     00009316  _main                  
+0     00009377  _MoveCursor            
+0     00009393  _WriteOnLCD            
+0     000093a3  _WriteNumberOnLCD      
+0     000093f0  _ClearOnLCD            
+0     000093fd  _GetRandomNumberBetween
+0     00009411  _InitializeGame        
+0     00009419  _SetGameTime           
+0     0000941c  _SwitchGameMode        
+0     00009440  _StartGame             
+0     0000944f  _ShowPreviousResults   
+0     00009488  _GetRPSInput           
+0     0000948b  _CheckWinner           
+0     0000948e  _GetRPS7Input          
+0     00009491  _CheckRemainingGameTime
+0     00009494  _Gpio_select           
+0     000094ad  _lcdprint_data         
+0     000094be  _lcd_write             
+0     000094fb  _lcd_Gpio_data_out     
+0     0000951f  _lcd_init              
+0     00009539  _InitSysCtrl           
+0     00009542  _ServiceDog            
+0     0000954c  _DisableDog            
+0     00009554  _InitPll               
+0     000095a5  _InitPeripheralClocks  
+0     000095f4  _CsmUnlock             
+0     00009625  _XINT1_isr             
+0     00009672  _XINT2_isr             
+0     000096c1  _cpu_timer0_isr        
+0     000096d7  _c_int00               
+0     0000971d  _InitCpuTimers         
+0     00009729  _ConfigCpuTimer        
+0     0000975a  _srand                 
+0     0000976a  _rand                  
+0     00009788  _InitPieCtrl           
+0     000097a7  _EnableInterrupts      
+0     000097b0  _InitPieVectTable      
+0     000097d2  I$$DIV                 
+0     000097e3  I$$MOD                 
+0     000097f4  __args_main            
+0     0000980d  C$$EXIT                
+0     0000980d  _abort                 
+0     0000980f  _exit                  
+0     00009826  __register_unlock      
+0     0000982a  __register_lock        
+0     0000982e  __nop                  
+0     0000982f  ___etext__             
+0     0000982f  etext                  
 0     00380080  _ADC_cal               
 1     00000400  __stack                
 1     00000700  __STACK_END            
@@ -582,18 +590,16 @@ page  address   name
 1     0000c000  _CpuTimer1             
 1     0000c004  _CpuTimer2             
 1     0000c008  _CpuTimer0             
-1     0000c00c  _UserInput10           
-1     0000c00d  _Tick                  
-1     0000c00e  _UserInput100          
-1     0000c00f  _UserInput1            
-1     0000c010  _UserInputAdder        
-1     0000c011  _GameState             
-1     0000c012  _GameOffTrigger        
-1     0000c013  _TargetNumber          
-1     0000c014  ___TI_cleanup_ptr      
-1     0000c016  ___TI_dtors_ptr        
-1     0000c018  __lock                 
-1     0000c01a  __unlock               
+1     0000c00c  _Tick                  
+1     0000c00d  _InputTickLimit        
+1     0000c00e  _LoseNumber            
+1     0000c00f  _DrawNumber            
+1     0000c010  _GameMode              
+1     0000c011  _WinNumber             
+1     0000c012  ___TI_cleanup_ptr      
+1     0000c014  ___TI_dtors_ptr        
+1     0000c016  __lock                 
+1     0000c018  __unlock               
 1     0000d000  _PieVectTableInit      
 1     0033fff8  _CsmPwl                
 abs   00000300  __STACK_SIZE           
@@ -603,4 +609,4 @@ abs   ffffffff  ___pinit__
 abs   ffffffff  binit                  
 abs   ffffffff  pinit                  
 
-[166 symbols]
+[170 symbols]
