@@ -79,6 +79,7 @@ typedef enum{
 	Paper,
 	Air,
 	Water,
+	None = -100
 }ERPS;
 
 unsigned const int InputTickLimit;
@@ -89,6 +90,9 @@ EGameMode GameMode = RPS;
 unsigned int WinNumber = 0;
 unsigned int LoseNumber = 0;
 unsigned int DrawNumber = 0;
+
+ERPS PlayerRPSInput = None;
+ERPS OtherRPSInput = None;
 
 interrupt void XINT1_isr(void)
 {
@@ -284,12 +288,13 @@ void InitializeGame()
 	LoseNumber = 0;
 	DrawNumber = 0;
 
-
+	PlayerRPSInput = None;
 }
 
 void SetGameTime()
 {
-	ClearOnLCD();
+	WriteNumberOnLCD(60, 0, 11);
+	WriteNumberOnLCD(60, 0, 14);
 }
 
 void SwitchGameMode()
@@ -337,22 +342,97 @@ void ShowPreviousResults()
 
 void GetRPSInput()
 {
-	ClearOnLCD();
+	swtich(PlayerRPSInput)
+	{
+	case Rock:
+		PlayerRPSInput = Scissors;
+		WriteOnLCD('S', 1, 4);
+		break;
+	case Scissors:
+		PlayerRPSInput = Paper;
+		WriteOnLCD('P', 1, 4);
+		break;
+	default:
+		PlayerRPSInput = Rock;
+		WriteOnLCD('R', 1, 4);
+		break;
+	}
 }
 
 void CheckWinner()
 {
-	ClearOnLCD();
+	switch (OtherRPSInput)
+	{
+	case Rock:
+		WriteOnLCD("R", 0, 14);
+		break;
+	case Fire:
+		WriteOnLCD("F", 0, 14);
+		break;
+	case Scissors:
+		WriteOnLCD("Sc", 0, 14);
+		break;
+	case Sponge:
+		WriteOnLCD("Sp", 0, 14);
+		break;
+	case Paper:
+		WriteOnLCD("P", 0, 14);
+		break;
+	case Air:
+		WriteOnLCD("A", 0, 14);
+		break;
+	case Water:
+		WriteOnLCD("W", 0, 14);
+		break;
+	default:
+		break;
+	}
 }
 
 void GetRPS7Input()
 {
-	ClearOnLCD();
+	switch (PlayerRPSInput)
+	{
+	case Rock:
+		PlayerRPSInput = Fire;
+		WriteOnLCD("F", 1, 4);
+		break;
+	case Fire:
+		PlayerRPSInput = Scissors;
+		WriteOnLCD("Sc", 1, 4);
+		break;
+	case Scissors:
+		PlayerRPSInput = Sponge;
+		WriteOnLCD("Sp", 1, 4);
+		break;
+	case Sponge:
+		PlayerRPSInput = Paper;
+		WriteOnLCD("P", 1, 4);
+		break;
+	case Paper:
+		PlayerRPSInput = Air;
+		WriteOnLCD("A", 1, 4);
+		break;
+	case Air:
+		PlayerRPSInput = Water;
+		WriteOnLCD("W", 1, 4);
+		break;
+	default:
+		PlayerRPSInput = Rock;
+		WriteOnLCD("R", 1, 4);
+		break;
+	}
 }
 
 void CheckRemainingGameTime()
 {
 	ClearOnLCD();
+	WriteOnLCD("Total Time   :", 0, 0);
+	WriteNumberOnLCD(60, 0, 11);
+	WriteNumberOnLCD(60, 1, 14);
+	WriteOnLCD("Re. Time     :", 0, 0);
+	WriteNumberOnLCD(60, 0, 11);
+	WriteNumberOnLCD(60, 0, 14);
 }
 
 int CheckSuperior(ERPS player, ERPS other)
