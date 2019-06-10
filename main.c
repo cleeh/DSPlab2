@@ -289,6 +289,7 @@ void InitializeGame()
 	DrawNumber = 0;
 
 	PlayerRPSInput = None;
+	OtherRPSInput = None;
 }
 
 void SetGameTime()
@@ -361,30 +362,16 @@ void GetRPSInput()
 
 void CheckWinner()
 {
-	switch (OtherRPSInput)
+	switch (CheckWinner(PlayerRPSInput, OtherRPSInput))
 	{
-	case Rock:
-		WriteOnLCD("R", 0, 14);
+	case 1: // Player is winner
+		WriteOnLCD("Win", 1, 6);
 		break;
-	case Fire:
-		WriteOnLCD("F", 0, 14);
+	case -1: // Other is winner
+		WriteOnLCD("Lose", 1, 6);
 		break;
-	case Scissors:
-		WriteOnLCD("Sc", 0, 14);
-		break;
-	case Sponge:
-		WriteOnLCD("Sp", 0, 14);
-		break;
-	case Paper:
-		WriteOnLCD("P", 0, 14);
-		break;
-	case Air:
-		WriteOnLCD("A", 0, 14);
-		break;
-	case Water:
-		WriteOnLCD("W", 0, 14);
-		break;
-	default:
+	case 0: // Draw
+		WriteOnLCD("Draw", 1, 6);
 		break;
 	}
 }
@@ -435,6 +422,17 @@ void CheckRemainingGameTime()
 	WriteNumberOnLCD(60, 0, 14);
 }
 
+void NotifyInvalidOperation()
+{
+	ClearOnLCD();
+	
+	WriteOnLCD("Invalid Operatio", 0, 0);
+	WriteOnLCD("n.Return SEL.-M", 1, 0);
+	DELAY_US(1500000);
+	
+	SwitchGameMode();
+}
+
 int CheckSuperior(ERPS player, ERPS other)
 {
 	int difference = other - player;
@@ -469,6 +467,7 @@ int CheckSuperior(ERPS player, ERPS other)
 	default:
 		ClearOnLCD();
 		WriteOnLCD("Error: Checking superior", 0, 0);
+		DELAY_US(500000);
 		return -999;
 		break;
 	}
