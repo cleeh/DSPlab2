@@ -12,6 +12,15 @@
 #define LED1_T	GpioDataRegs.GPATOGGLE.bit.GPIO25 = 1	//GPIO25 핀 현재값에 반전
 #define LED2_T	GpioDataRegs.GPATOGGLE.bit.GPIO24 = 1	//GPIO24 핀 현재값에 반전
 
+#define FNDA_H	GpioDataRegs.GPBSET.bit.GPIO50 = 1
+#define FNDB_H	GpioDataRegs.GPBSET.bit.GPIO51 = 1
+#define FNDC_H	GpioDataRegs.GPBSET.bit.GPIO52 = 1
+#define FNDD_H	GpioDataRegs.GPBSET.bit.GPIO53 = 1
+#define FNDA_L	GpioDataRegs.GPBCLEAR.bit.GPIO50 = 1
+#define FNDB_L	GpioDataRegs.GPBCLEAR.bit.GPIO51 = 1
+#define FNDC_L	GpioDataRegs.GPBCLEAR.bit.GPIO52 = 1
+#define FNDD_L	GpioDataRegs.GPBCLEAR.bit.GPIO53 = 1
+
 #define DIP1	GpioDataRegs.GPBDAT.bit.GPIO48
 #define DIP2	GpioDataRegs.GPBDAT.bit.GPIO49
 
@@ -46,6 +55,7 @@ void lcdprint_data(char *str);
 void lcd_write(char data,unsigned char Rs);
 void lcd_Gpio_data_out(unsigned char da);
 void lcd_init(void);
+void Gpio_Fnd_out(unsigned char da);
 
 /* Custom Function */
 int MoveCursor(int row, int column);
@@ -54,18 +64,13 @@ void WriteNumberOnLCD(int number, int row, int column);
 void ClearOnLCD();
 int GetRandomNumberBetween(int from, int to);
 
-void InitializeGame();
-void SetGameTime();
-void SwitchGameMode();
-void StartGame();
-void ShowPreviousResults();
-void GetRPSInput();
-void CheckWinner();
-void GetRPS7Input();
-void CheckRemainingGameTime();
-int CheckSuperior(ERPS player, ERPS other);
+typedef enum{
+	Setting,
+	GamePlaying,
+	CheckingTime,
+	CheckingPreviousResults
+}EGameState;
 
-/* Variables */
 typedef enum{
 	RPS,
 	RPS_7
@@ -79,20 +84,42 @@ typedef enum{
 	Paper,
 	Air,
 	Water,
-	None = -100
 }ERPS;
 
-unsigned const int InputTickLimit;
+/* Game Function */
+void InitializeGame();
+void SetGameTime();
+void SwitchGameMode();
+void StartGame();
+void ShowPreviousResults();
+void GetRPSInput();
+void CheckWinner();
+void GetRPS7Input();
+void CheckRemainingGameTime();
+void GameOver();
+int CheckSuperior(ERPS player, ERPS other);
+void NotifyInvalidOperation();
+void WriteRPSOnLCD(ERPS input, int row, int column);
+ERPS SetRandomOtherRPS();
 
+/* Variables */
+unsigned const int InputTickLimit = 5;
+
+unsigned int FNDTickPointer = 5;
+unsigned int GameTotalTick = 0;
 unsigned int Tick = 0;
+unsigned int GameTimeLimit = 20;
+unsigned int RemainedGameTime = 20;
 
+EGameState GameState = Setting;
 EGameMode GameMode = RPS;
+unsigned int TotalPlayNumber = 0;
 unsigned int WinNumber = 0;
 unsigned int LoseNumber = 0;
 unsigned int DrawNumber = 0;
 
-ERPS PlayerRPSInput = None;
-ERPS OtherRPSInput = None;
+ERPS PlayerRPSInput = Rock;
+ERPS OtherRPSInput = Rock;
 
 interrupt void XINT1_isr(void)
 {
@@ -135,8 +162,15 @@ interrupt void XINT2_isr(void)
 	}
 	else if(DIP1 && DIP2) // Start Game / Check Previous Results
 	{
-		StartGame();
-		ShowPreviousResults();
+		if(GameState == Setting)
+			StartGame();
+		else if(GameState == GamePlaying)
+		{
+			GameState = CheckingPreviousResults;
+			ShowPreviousResults();
+			DELAY_US(800000);
+			StartGame();
+		}
 	}
 
 	// RPS
@@ -159,6 +193,20 @@ interrupt void cpu_timer0_isr(void)
 	DINT;
 
 	Tick++;
+	if(GameState == GamePlaying && Tick % 10 == 0)
+	{
+		GameTotalTick++;
+		RemainedGameTime--;
+		if(RemainedGameTime == 0 || RemainedGameTime > 120)
+			GameOver();
+		if(FNDTickPointer > 0) FNDTickPointer--;
+	}
+	if(GameState == GamePlaying)
+	{
+		Gpio_Fnd_out(FNDTickPointer);
+		if(FNDTickPointer == 0)
+			TimeOver();
+	}
 
 	EINT;
 	PieCtrlRegs.PIEACK.all = PIEACK_GROUP1; // Reset bit for re-interrupt
@@ -216,7 +264,7 @@ void main(void)
 	LED1_L;
 	LED2_L;
 
-	WriteNumberOnLCD(-1234, 0, 0);
+	InitializeGame();
 
 	while(1);
 }
@@ -251,7 +299,7 @@ void WriteNumberOnLCD(int number, int row, int column)
 	}
 
 	int divider;
-	for(divider = 10000; divider > 1; divider /= 10)
+	for(divider = 10000; divider >= 1; divider /= 10)
 	{
 		if(number / divider)
 			str[str_index++] = number / divider % 10 + 48;
@@ -280,51 +328,74 @@ void InitializeGame()
 {
 	ClearOnLCD();
 
+	FNDTickPointer = 5;
+	GameTotalTick = 0;
 	Tick = 0;
+	GameTimeLimit = 20;
+	RemainedGameTime = 20;
 
+	GameState = Setting;
 	GameMode = RPS;
-
+	TotalPlayNumber = 0;
 	WinNumber = 0;
 	LoseNumber = 0;
 	DrawNumber = 0;
 
-	PlayerRPSInput = None;
-	OtherRPSInput = None;
+	PlayerRPSInput = Rock;
+	OtherRPSInput = Rock;
+
+	WriteOnLCD("Initialized", 0, 0);
 }
 
 void SetGameTime()
 {
-	WriteNumberOnLCD(60, 0, 11);
-	WriteNumberOnLCD(60, 0, 14);
+	if(GameState == Setting)
+	{
+		ClearOnLCD();
+		WriteOnLCD("Set Game Time", 0, 1);
+
+		if(GameTimeLimit < 120) GameTimeLimit += 10;
+		else GameTimeLimit = 20;
+		WriteOnLCD(":", 1, 6);
+		WriteNumberOnLCD(GameTimeLimit / 60, 1, 5);
+		WriteNumberOnLCD(GameTimeLimit % 60, 1, 7);
+		RemainedGameTime = GameTimeLimit;
+	}
 }
 
 void SwitchGameMode()
 {
-	ClearOnLCD();
-
-	// Display Frame
-	WriteOnLCD("SELECT MODE", 0, 2);
-	WriteOnLCD("-RPS -PRS-7", 1, 2);
-
-	switch(GameMode)
+	if(GameState == Setting)
 	{
-	case RPS:
-		GameMode = RPS_7;
-		MoveCursor(1, 2);
-		break;
-	case RPS_7:
-		GameMode = RPS;
-		MoveCursor(1, 7);
-		break;
+		ClearOnLCD();
+
+		// Display Frame
+		WriteOnLCD("SELECT MODE", 0, 2);
+		WriteOnLCD("-RPS -PRS-7", 1, 2);
+
+		switch(GameMode)
+		{
+		case RPS:
+			GameMode = RPS_7;
+			MoveCursor(1, 7);
+			break;
+		case RPS_7:
+			GameMode = RPS;
+			MoveCursor(1, 2);
+			break;
+		}
 	}
 }
 
 void StartGame()
 {
 	ClearOnLCD();
+	GameState = GamePlaying;
 
-	WriteOnLCD("1.RPS MODE", 0, 3);
-	WriteOnLCD("YOU:s       PC:*", 1, 0);
+	if(GameMode == RPS) WriteOnLCD("1.RPS MODE", 0, 3);
+	else if (GameMode == RPS_7) WriteOnLCD("2.RPS-7 MODE", 0, 2);
+	WriteOnLCD("ME:        PC:*", 1, 0);
+	WriteRPSOnLCD(PlayerRPSInput, 1, 3);
 }
 
 void ShowPreviousResults()
@@ -343,83 +414,138 @@ void ShowPreviousResults()
 
 void GetRPSInput()
 {
-	swtich(PlayerRPSInput)
-	{
-	case Rock:
-		PlayerRPSInput = Scissors;
-		WriteOnLCD('S', 1, 4);
-		break;
-	case Scissors:
-		PlayerRPSInput = Paper;
-		WriteOnLCD('P', 1, 4);
-		break;
-	default:
-		PlayerRPSInput = Rock;
-		WriteOnLCD('R', 1, 4);
-		break;
-	}
+	if(GameState == GamePlaying && GameMode == RPS)
+		switch(PlayerRPSInput)
+		{
+		case Rock:
+			PlayerRPSInput = Scissors;
+			WriteOnLCD("S", 1, 3);
+			break;
+		case Scissors:
+			PlayerRPSInput = Paper;
+			WriteOnLCD("P", 1, 3);
+			break;
+		default:
+			PlayerRPSInput = Rock;
+			WriteOnLCD("R", 1, 3);
+			break;
+		}
 }
 
 void CheckWinner()
 {
-	switch (CheckWinner(PlayerRPSInput, OtherRPSInput))
+	if(GameState != GamePlaying)
+	{
+		NotifyInvalidOperation();
+		return;
+	}
+
+	SetRandomOtherRPS();
+
+	WriteOnLCD("    ", 1, 6);
+	switch (CheckSuperior(PlayerRPSInput, OtherRPSInput))
 	{
 	case 1: // Player is winner
 		WriteOnLCD("Win", 1, 6);
+		WinNumber++;
+		TotalPlayNumber++;
 		break;
 	case -1: // Other is winner
 		WriteOnLCD("Lose", 1, 6);
+		LoseNumber++;
+		TotalPlayNumber++;
 		break;
 	case 0: // Draw
 		WriteOnLCD("Draw", 1, 6);
+		DrawNumber++;
+		TotalPlayNumber++;
 		break;
 	}
+	WriteOnLCD("  ", 1, 14);
+	WriteRPSOnLCD(OtherRPSInput, 1, 14);
+
+	FNDTickPointer = 5;
 }
 
 void GetRPS7Input()
 {
-	switch (PlayerRPSInput)
+	if(GameState == GamePlaying && GameMode == RPS_7)
 	{
-	case Rock:
-		PlayerRPSInput = Fire;
-		WriteOnLCD("F", 1, 4);
-		break;
-	case Fire:
-		PlayerRPSInput = Scissors;
-		WriteOnLCD("Sc", 1, 4);
-		break;
-	case Scissors:
-		PlayerRPSInput = Sponge;
-		WriteOnLCD("Sp", 1, 4);
-		break;
-	case Sponge:
-		PlayerRPSInput = Paper;
-		WriteOnLCD("P", 1, 4);
-		break;
-	case Paper:
-		PlayerRPSInput = Air;
-		WriteOnLCD("A", 1, 4);
-		break;
-	case Air:
-		PlayerRPSInput = Water;
-		WriteOnLCD("W", 1, 4);
-		break;
-	default:
-		PlayerRPSInput = Rock;
-		WriteOnLCD("R", 1, 4);
-		break;
+		WriteOnLCD("  ", 1, 3);
+		switch (PlayerRPSInput)
+		{
+		case Rock:
+			PlayerRPSInput = Fire;
+			WriteOnLCD("F", 1, 3);
+			break;
+		case Fire:
+			PlayerRPSInput = Scissors;
+			WriteOnLCD("Sc", 1, 3);
+			break;
+		case Scissors:
+			PlayerRPSInput = Sponge;
+			WriteOnLCD("Sp", 1, 3);
+			break;
+		case Sponge:
+			PlayerRPSInput = Paper;
+			WriteOnLCD("P", 1, 3);
+			break;
+		case Paper:
+			PlayerRPSInput = Air;
+			WriteOnLCD("A", 1, 3);
+			break;
+		case Air:
+			PlayerRPSInput = Water;
+			WriteOnLCD("W", 1, 3);
+			break;
+		default:
+			PlayerRPSInput = Rock;
+			WriteOnLCD("R", 1, 3);
+			break;
+		}
 	}
 }
 
 void CheckRemainingGameTime()
 {
+	if(GameState == GamePlaying)
+	{
+		ClearOnLCD();
+		WriteOnLCD("Total Time   :", 0, 0);
+		if(GameTotalTick >= 600)
+			WriteNumberOnLCD(GameTotalTick / 3600, 0, 11); // minute
+		else
+			WriteNumberOnLCD(GameTotalTick / 3600, 0, 12);
+		WriteNumberOnLCD(GameTotalTick % 60, 0, 14); // second
+
+		WriteOnLCD("Re. Time     :", 1, 0);
+		WriteNumberOnLCD(RemainedGameTime / 60, 1, 12); // minute
+		WriteNumberOnLCD(RemainedGameTime % 60, 1, 14); // second
+
+		GameState = CheckingTime;
+	}
+	else if(GameState == CheckingTime)
+		StartGame();
+}
+
+void TimeOver()
+{
+	WriteOnLCD("Lose", 1, 6);
+	LoseNumber++;
+	TotalPlayNumber++;
+
+	FNDTickPointer = 5;
+}
+
+void GameOver()
+{
+	GameState = Setting;
+	RemainedGameTime = GameTimeLimit;
+
 	ClearOnLCD();
-	WriteOnLCD("Total Time   :", 0, 0);
-	WriteNumberOnLCD(60, 0, 11);
-	WriteNumberOnLCD(60, 1, 14);
-	WriteOnLCD("Re. Time     :", 0, 0);
-	WriteNumberOnLCD(60, 0, 11);
-	WriteNumberOnLCD(60, 0, 14);
+	WriteOnLCD("Game is Over", 0, 1);
+	DELAY_US(800000);
+	ShowPreviousResults();
 }
 
 void NotifyInvalidOperation()
@@ -428,9 +554,6 @@ void NotifyInvalidOperation()
 	
 	WriteOnLCD("Invalid Operatio", 0, 0);
 	WriteOnLCD("n.Return SEL.-M", 1, 0);
-	DELAY_US(1500000);
-	
-	SwitchGameMode();
 }
 
 int CheckSuperior(ERPS player, ERPS other)
@@ -447,7 +570,6 @@ int CheckSuperior(ERPS player, ERPS other)
 	case -5:
 	case -6:
 		return 1;
-		break;
 
 	// Case: Other is superior
 	case -1:
@@ -457,20 +579,63 @@ int CheckSuperior(ERPS player, ERPS other)
 	case 5:
 	case 6:
 		return -1;
-		break;
 
 	// Case: Apposition each other
 	case 0:
 		return 0;
-		break;
 
 	default:
 		ClearOnLCD();
 		WriteOnLCD("Error: Checking superior", 0, 0);
-		DELAY_US(500000);
+		DELAY_US(800000);
 		return -999;
+	}
+}
+
+void WriteRPSOnLCD(ERPS input, int row, int column)
+{
+	switch(input)
+	{
+	case Rock:
+		WriteOnLCD("R", row, column);
+		break;
+	case Fire:
+		WriteOnLCD("F", row, column);
+		break;
+	case Scissors:
+		WriteOnLCD("Sc", row, column);
+		break;
+	case Sponge:
+		WriteOnLCD("Sp", row, column);
+		break;
+	case Paper:
+		WriteOnLCD("P", row, column);
+		break;
+	case Air:
+		WriteOnLCD("A", row, column);
+		break;
+	case Water:
+		WriteOnLCD("W", row, column);
 		break;
 	}
+}
+
+ERPS SetRandomOtherRPS()
+{
+	int output;
+
+	srand(Tick);
+	switch(GameMode)
+	{
+	case RPS:
+		output = rand() % 6 / 2 * 2;
+		break;
+	case RPS_7:
+		output = rand() % 7;
+		break;
+	}
+
+	return (OtherRPSInput = (ERPS)output);
 }
 //================================== Initiali Setting =========================================
 
@@ -482,6 +647,12 @@ void Gpio_select(void)
 
 	GpioCtrlRegs.GPADIR.bit.GPIO25 = 1;
 	GpioCtrlRegs.GPADIR.bit.GPIO24 = 1;
+
+	// FND Register
+	GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO51 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO52 = 1;
+	GpioCtrlRegs.GPBDIR.bit.GPIO53 = 1;
 
 	// LCD Register
 	GpioCtrlRegs.GPBDIR.bit.GPIO54 = 1;
@@ -542,4 +713,16 @@ void lcd_init(void)
 	lcd_write(0x01,0);		//Display Clear
     DELAY_US(1960);
 	lcd_write(0x06,0);		//Entry mode
+}
+
+void Gpio_Fnd_out(unsigned char da)
+{
+	if(da & 0x01)	FNDA_H;
+	else			FNDA_L;
+	if(da & 0x02)	FNDB_H;
+	else			FNDB_L;
+	if(da & 0x04)	FNDC_H;
+	else			FNDC_L;
+	if(da & 0x08)	FNDD_H;
+	else			FNDD_L;
 }
